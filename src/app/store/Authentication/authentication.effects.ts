@@ -41,27 +41,24 @@ export class AuthenticationEffects {
   login$ = createEffect(() =>
     this.actions$.pipe(
       ofType(login),
-      exhaustMap(({ email, password }) => {
-        if (environment.defaultauth === "fakebackend") {
-          return this.AuthfakeService.login(email, password).pipe(
-            map((user) => {
-              if (user) {
-                localStorage.setItem('currentUser', JSON.stringify(user));
-                localStorage.setItem('token', user.token);
-                this.router.navigate(['/']);
-              }
+      exhaustMap(({ email }) => {
+        // Ici, on utilise "email" comme le champ "matricule"
+        return this.AuthfakeService.loginByMatricule(email).pipe(
+          map((user) => {
+            if (user) {
+              localStorage.setItem('currentUser', JSON.stringify(user));
+              this.router.navigate(['/']);
               return loginSuccess({ user });
-            }),
-            catchError((error) => of(loginFailure({ error })), // Closing parenthesis added here
-            ));
-        } else if (environment.defaultauth === "firebase") {
-          return this.AuthenticationService.login(email, password).pipe(map((user) => {
-            return loginSuccess({ user });
-          }))
-        }
+            } else {
+              return loginFailure({ error: 'Utilisateur non trouvé' });
+            }
+          }),
+          catchError((error) => of(loginFailure({ error: error.message || 'Erreur inconnue' })))
+        );
       })
     )
   );
+
 
 
   logout$ = createEffect(() =>

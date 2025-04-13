@@ -162,8 +162,8 @@
       "LIST": {
         "GRID": "Congés",
         "PROJECTLIST": "Liste des demandes",
-        "OVERVIEW": "Project Overview",
-        "CREATE": "Nouvelle demande"
+        "OVERVIEW": "nouvelle demande générale",
+        "CREATE": "Nouvelle demande congé"
       }
     },
     "TASKS": {
@@ -177,7 +177,7 @@
     "CONTACTS": {
       "TEXT": "Gestion des utilisateurs",
       "LIST": {
-        "USERGRID": "Responsables",
+        "USERGRID": "Services",
         "USERLIST": "Employées",
         "PROFILE": "Profile"
       }

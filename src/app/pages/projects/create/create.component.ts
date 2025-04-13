@@ -1,102 +1,66 @@
-import { Component, OnInit, Input, EventEmitter, ViewChild, Output } from '@angular/core';
-import { member } from './data';
+import { Component, OnInit } from '@angular/core';
 import { DropzoneConfigInterface } from 'ngx-dropzone-wrapper';
-
+import { DemandeConge } from 'src/app/core/models/interfaces/demande-conge';
+import { DemandeCongeService } from 'src/app/core/models/services/demande-conge.service';
 
 @Component({
   selector: 'app-create',
   templateUrl: './create.component.html',
   styleUrls: ['./create.component.scss']
 })
-
-/**
- * Projects-create component
- */
 export class CreateComponent implements OnInit {
-
-  constructor() { }
-  // bread crumb items
-  breadCrumbItems: Array<{}>;
-  selected: any;
-  hidden: boolean;
+  breadCrumbItems: Array<{}> = [];
   files: File[] = [];
-  assignMember: any
-
-  @Input() fromDate: Date;
-  @Input() toDate: Date;
-  @Output() dateRangeSelected: EventEmitter<{}> = new EventEmitter();
-
-  @ViewChild('dp', { static: true }) datePicker: any;
-
-  ngOnInit() {
-    this.breadCrumbItems = [{ label: 'Projects' }, { label: 'Create New', active: true }];
-
-    this.selected = '';
-    this.hidden = true;
-    this.assignMember = member;
-  }
-
-  // File Upload
-  imageURL: any;
-  onSelect(event: any) {
-    this.files.push(...event.addedFiles);
-    let file: File = event.addedFiles[0];
-    const reader = new FileReader();
-    reader.onload = () => {
-      this.imageURL = reader.result as string;
-      setTimeout(() => {
-        // this.profile.push(this.imageURL)
-      }, 100);
-    }
-    reader.readAsDataURL(file)
-  }
-
-  assignList: any = []
-  slectMember(id: any) {
-    if (this.assignMember[id].checked == '0') {
-      this.assignMember[id].checked = '1'
-      this.assignList.push(this.assignMember[id])
-    } else {
-      this.assignMember[id].checked = '0'
-      this.assignList.pop(this.assignMember[id])
-    }
-  }
-
-  // filechange
   imageURLs: any;
+  uploadedFiles: any[] = [];
+
+  demande: DemandeConge = {
+    dateDebut: new Date(),
+    dateFin: new Date(),
+    userId: 0
+  };
+
+  constructor(private demandeService: DemandeCongeService) {}
+
+  ngOnInit(): void {
+    this.breadCrumbItems = [{ label: 'Congés' }, { label: 'Créer une demande', active: true }];
+
+    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    this.demande.userId = user?.id;
+  }
+
+  onSubmit(): void {
+    if (!this.demande.dateDebut || !this.demande.dateFin) return;
+
+    this.demandeService.create(this.demande).subscribe(() => {
+      alert('Demande de congé envoyée avec succès !');
+      // reset ou redirection si tu veux
+    });
+  }
+
   fileChange(event: any) {
-    let fileList: any = (event.target as HTMLInputElement);
-    let file: File = fileList.files[0];
+    const fileList = event.target as HTMLInputElement;
+    const file: File = fileList.files[0];
     const reader = new FileReader();
 
-    reader.readAsDataURL(file)
+    reader.readAsDataURL(file);
     reader.onload = () => {
       this.imageURLs = reader.result as string;
-
-      document.querySelectorAll('#projectlogo-img').forEach((element: any) => {
-        element.src = this.imageURLs;
-      });
-    }
+      document.querySelectorAll('#projectlogo-img').forEach((el: any) => el.src = this.imageURLs);
+    };
   }
-  // file upload
+
   public dropzoneConfig: DropzoneConfigInterface = {
     clickable: true,
     addRemoveLinks: true,
     previewsContainer: false
   };
 
-  uploadedFiles: any[] = [];
-
-  // File Upload
   onUploadSuccess(event: any) {
-    setTimeout(() => {
-      this.uploadedFiles.push(event[0]);
-    }, 100);
+    setTimeout(() => this.uploadedFiles.push(event[0]), 100);
   }
 
-  // File Remove
   removeFile(event: any) {
     this.uploadedFiles.splice(this.uploadedFiles.indexOf(event), 1);
   }
-
 }

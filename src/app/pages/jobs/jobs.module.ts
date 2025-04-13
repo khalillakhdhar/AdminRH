@@ -13,8 +13,9 @@ import { ApplyComponent } from './apply/apply.component';
 import { DetailsComponent } from './details/details.component';
 import { CategoriesComponent } from './categories/categories.component';
 import { CandidateListComponent } from './candidate-list/candidate-list.component';
-import { CandidateOverviewComponent } from './candidate-overview/candidate-overview.component'; 
+import { CandidateOverviewComponent } from './candidate-overview/candidate-overview.component';
 import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.component';
+import { ModalModule } from 'ngx-bootstrap/modal';
 
 @NgModule({
   declarations: [
@@ -35,7 +36,8 @@ import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.compon
     BsDropdownModule.forRoot(),
     CollapseModule.forRoot(),
     JobsRoutingModule,
-    PagetitleComponent
+    PagetitleComponent,
+    ModalModule.forRoot()
   ]
 })
 

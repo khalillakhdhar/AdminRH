@@ -16,13 +16,13 @@ export const routes: Routes = [
         component: LayoutComponent,
         loadChildren: () =>
             import("./pages/pages.module").then((m) => m.PagesModule),
-       // canActivate: [AuthGuard],
+        canActivate: [AuthGuard],
     },
     {
         path: "pages",
         loadChildren: () =>
             import("./extrapages/extrapages.module").then((m) => m.ExtrapagesModule),
-       // canActivate: [AuthGuard],
+        canActivate: [AuthGuard],
     },
     { path: "crypto-ico-landing", component: CyptolandingComponent },
     { path: "**", component: Page404Component },

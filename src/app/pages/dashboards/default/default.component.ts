@@ -1,142 +1,81 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { emailSentBarChart, monthlyEarningChart } from './data';
-import { ChartType } from './dashboard.model';
-import { BsModalService, BsModalRef, ModalDirective, ModalModule } from 'ngx-bootstrap/modal';
-import { EventService } from '../../../core/services/event.service';
-
-import { ConfigService } from '../../../core/services/config.service';
+import { Component, OnInit } from '@angular/core';
+import { Fourniture } from 'src/app/core/models/interfaces/fourniture';
+import { TypeFourniture } from 'src/app/core/models/interfaces/type-fourniture';
+import { Matiere } from 'src/app/core/models/interfaces/matiere';
+import { MatiereService } from 'src/app/core/models/services/matiere.service';
+import { TypeFournitureService } from 'src/app/core/models/services/type-fourniture.service';
 import { CommonModule } from '@angular/common';
-import { NgApexchartsModule } from 'ng-apexcharts';
-import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
-import { TransactionComponent } from 'src/app/shared/widget/transaction/transaction.component';
-import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.component';
-import { LoaderComponent } from 'src/app/shared/ui/loader/loader.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-default',
   templateUrl: './default.component.html',
   styleUrls: ['./default.component.scss'],
-  standalone:true,
-  imports:[PagetitleComponent,LoaderComponent,CommonModule,NgApexchartsModule,BsDropdownModule,ModalModule,TransactionComponent]
+  standalone: true,
+   imports: [
+    // Ajoutez ici les modules Angular nécessaires
+    FormsModule,
+    CommonModule
+  ]
 })
 export class DefaultComponent implements OnInit {
-  modalRef?: BsModalRef;
-  isVisible: string;
+  currentUser: any = null;
 
-  emailSentBarChart: ChartType;
-  monthlyEarningChart: ChartType;
-  transactions: any;
-  statData: any;
-  config:any = {
-    backdrop: true,
-    ignoreBackdropClick: true
-  };
+  // Matières & Types CRUD
+  matieres: Matiere[] = [];
+  typesFourniture: TypeFourniture[] = [];
 
-  isActive: string;
+  newMatiere: Matiere = { id: 0, nom: '', quantite: 0, dateAjout: '' };
+  newType: TypeFourniture = { id: 0, nom: '', qte: '' };
 
-  @ViewChild('content') content;
-  @ViewChild('center', { static: false }) center?: ModalDirective;
-  constructor(private modalService: BsModalService, private configService: ConfigService, private eventService: EventService) {
+  constructor(
+    private matiereService: MatiereService,
+    private typeService: TypeFournitureService
+  ) {}
+
+  ngOnInit(): void {
+    const user = localStorage.getItem('currentUser');
+    this.currentUser = user ? JSON.parse(user) : null;
+
+    this.getMatieres();
+    this.getTypes();
   }
 
-  ngOnInit() {
+  // 🔁 MATERIELS
+  getMatieres() {
+    this.matiereService.getAll().subscribe(data => this.matieres = data);
+  }
 
-    /**
-     * horizontal-vertical layput set
-     */
-    const attribute = document.body.getAttribute('data-layout');
-
-    this.isVisible = attribute;
-    const vertical = document.getElementById('layout-vertical');
-    if (vertical != null) {
-      vertical.setAttribute('checked', 'true');
+  addMatiere(form: any) {
+    if (form.valid) {
+      this.matiereService.create(this.newMatiere).subscribe(() => {
+        this.getMatieres();
+        this.newMatiere = { id: 0, nom: '', quantite: 0, dateAjout: '' };
+        form.resetForm();
+      });
     }
-    if (attribute == 'horizontal') {
-      const horizontal = document.getElementById('layout-horizontal');
-      if (horizontal != null) {
-        horizontal.setAttribute('checked', 'true');
-      }
+  }
+
+  deleteMatiere(id: number) {
+    this.matiereService.delete(id).subscribe(() => this.getMatieres());
+  }
+
+  // 🔁 TYPES
+  getTypes() {
+    this.typeService.getAll().subscribe(data => this.typesFourniture = data);
+  }
+
+  addType(form: any) {
+    if (form.valid) {
+      this.typeService.create(this.newType).subscribe(() => {
+        this.getTypes();
+        this.newType = { id: 0, nom: '', qte: '' };
+        form.resetForm();
+      });
     }
-
-    /**
-     * Fetches the data
-     */
-    this.fetchData();
-  }
-/*
-  ngAfterViewInit() {
-    setTimeout(() => {
-     this.center?.show()
-    }, 2000);
-  }
-*/
-  /**
-   * Fetches the data
-   */
-  private fetchData() {
-    this.emailSentBarChart = emailSentBarChart;
-    this.monthlyEarningChart = monthlyEarningChart;
-
-    this.isActive = 'year';
-    this.configService.getConfig().subscribe(data => {
-      this.transactions = data.transactions;
-      this.statData = data.statData;
-    });
-  }
-  opencenterModal(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template);
-  }
-  weeklyreport() {
-    this.isActive = 'week';
-    this.emailSentBarChart.series =
-      [{
-        name: 'Series A',
-        data: [44, 55, 41, 67, 22, 43, 36, 52, 24, 18, 36, 48]
-      }, {
-        name: 'Series B',
-        data: [11, 17, 15, 15, 21, 14, 11, 18, 17, 12, 20, 18]
-      }, {
-        name: 'Series C',
-        data: [13, 23, 20, 8, 13, 27, 18, 22, 10, 16, 24, 22]
-      }];
   }
 
-  monthlyreport() {
-    this.isActive = 'month';
-    this.emailSentBarChart.series =
-      [{
-        name: 'Series A',
-        data: [44, 55, 41, 67, 22, 43, 36, 52, 24, 18, 36, 48]
-      }, {
-        name: 'Series B',
-        data: [13, 23, 20, 8, 13, 27, 18, 22, 10, 16, 24, 22]
-      }, {
-        name: 'Series C',
-        data: [11, 17, 15, 15, 21, 14, 11, 18, 17, 12, 20, 18]
-      }];
-  }
-
-  yearlyreport() {
-    this.isActive = 'year';
-    this.emailSentBarChart.series =
-      [{
-        name: 'Series A',
-        data: [13, 23, 20, 8, 13, 27, 18, 22, 10, 16, 24, 22]
-      }, {
-        name: 'Series B',
-        data: [11, 17, 15, 15, 21, 14, 11, 18, 17, 12, 20, 18]
-      }, {
-        name: 'Series C',
-        data: [44, 55, 41, 67, 22, 43, 36, 52, 24, 18, 36, 48]
-      }];
-  }
-
-
-  /**
-   * Change the layout onclick
-   * @param layout Change the layout
-   */
-  changeLayout(layout: string) {
-    this.eventService.broadcast('changeLayout', layout);
+  deleteType(id: number) {
+    this.typeService.delete(id).subscribe(() => this.getTypes());
   }
 }

@@ -1,102 +1,47 @@
 import { Component, OnInit } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, UntypedFormControl, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
-
-import { taskChart, tasks } from './data';
-
-import { ChartType, Tasklist } from './list.model';
-import { NgApexchartsModule } from 'ng-apexcharts';
+import { FournitureService } from 'src/app/core/models/services/fourniture.service';
+import { Fourniture } from 'src/app/core/models/interfaces/fourniture';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.component';
 
 @Component({
   selector: 'app-list',
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss'],
-  standalone:true,
-  imports:[PagetitleComponent,ReactiveFormsModule,NgApexchartsModule,CommonModule,FormsModule]
+  standalone: true,
+  imports: [PagetitleComponent, CommonModule, FormsModule]
 })
-
-/**
- * Tasks-list component
- */
 export class ListComponent implements OnInit {
+  breadCrumbItems: Array<any> = [];
+  fournitures: Fourniture[] = [];
 
-  // bread crumb items
-  breadCrumbItems: Array<{}>;
+  constructor(private fournitureService: FournitureService) {}
 
-  modalRef?: BsModalRef;
+  ngOnInit(): void {
+    this.breadCrumbItems = [{ label: 'Fournitures' }, { label: 'Liste', active: true }];
+    this.fetchFournitures();
 
-  submitted = false;
-  formData: UntypedFormGroup;
+  }
 
-  taskChart: ChartType;
-
-  upcomingTasks: Tasklist[];
-  inprogressTasks: Tasklist[];
-  completedTasks: Tasklist[];
-  myFiles: string[] = [];
-
-  constructor(private modalService: BsModalService, private formBuilder: UntypedFormBuilder) { }
-
-  ngOnInit() {
-    this.breadCrumbItems = [{ label: 'Tasks' }, { label: 'Task List', active: true }];
-
-    this.formData = this.formBuilder.group({
-      name: ['', [Validators.required]],
-      file: new UntypedFormControl('', [Validators.required]),
-      taskType: ['', [Validators.required]],
-      status: ['', [Validators.required]]
+  fetchFournitures() {
+    this.fournitureService.getAll().subscribe(data => {
+      this.fournitures = data;
+      console.log(this.fournitures);
     });
-
-    this._fetchData();
   }
 
-  onFileChange(event) {
-    for (var i = 0; i < event.target.files.length; i++) {
-      this.myFiles.push('assets/images/users/' + event.target.files[i].name);
-    }
+  accepter(f: Fourniture) {
+    f.etats = 'Acceptée';
+    this.fournitureService.update(f.id, f).subscribe(() => {
+      alert('Demande acceptée');
+    });
   }
 
-  _fetchData() {
-    // all tasks
-    this.inprogressTasks = tasks.filter(t => t.taskType === 'inprogress');
-    this.upcomingTasks = tasks.filter(t => t.taskType === 'upcoming');
-    this.completedTasks = tasks.filter(t => t.taskType === 'completed');
-
-    console.log(this.upcomingTasks,'dsdsad');
-
-    this.taskChart = taskChart;
-  }
-
-
-  get form() {
-    return this.formData.controls;
-  }
-
-  listData() {
-    if (this.formData.valid) {
-      const name = this.formData.get('name').value;
-      const status = this.formData.get('status').value;
-      const taskType = this.formData.get('taskType').value;
-      tasks.push({
-        index: tasks.length + 1,
-        name,
-        status,
-        taskType,
-        images: this.myFiles,
-        checked: true
-      })
-    }
-    this.modalService.hide()
-    this._fetchData();
-    this.submitted = false;
-  }
-  /**
-   * Open modal
-   * @param content modal content
-   */
-  openModal(content: any) {
-    this.modalRef = this.modalService.show(content);
+  refuser(f: Fourniture) {
+    f.etats = 'Refusée';
+    this.fournitureService.update(f.id, f).subscribe(() => {
+      alert('Demande refusée');
+    });
   }
 }

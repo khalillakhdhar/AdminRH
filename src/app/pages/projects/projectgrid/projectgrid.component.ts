@@ -1,58 +1,50 @@
-import { Component, OnInit, QueryList, ViewChildren } from '@angular/core';
-import { Observable } from 'rxjs';
-import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
-import { UntypedFormBuilder, UntypedFormGroup, FormArray, Validators } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
+import { DemandeConge } from 'src/app/core/models/interfaces/demande-conge';
+import { DemandeCongeService } from 'src/app/core/models/services/demande-conge.service';
 
-import { Project } from '../project.model';
-import { Store } from '@ngrx/store';
-import { fetchprojectData } from 'src/app/store/ProjectsData/project.actions';
-import { selectData } from 'src/app/store/ProjectsData/project-selector';
-import { PageChangedEvent } from 'ngx-bootstrap/pagination';
 
 @Component({
   selector: 'app-projectgrid',
   templateUrl: './projectgrid.component.html',
-  styleUrls: ['./projectgrid.component.scss'],
-
+  styleUrls: ['./projectgrid.component.scss']
 })
-
-/**
- * Projects-grid component
- */
 export class ProjectgridComponent implements OnInit {
 
-  // bread crumb items
-  breadCrumbItems: Array<{}>;
-  returnedArray: any
-  projectData: any
-  // Table data
-  content?: any;
-  orderes?: any;
-  ordersList!: Observable<Project[]>;
-  total: Observable<number>;
-  page: any = 1;
-  endItem: any = 12;
+  breadCrumbItems: any[] = [];
+  demandes: DemandeConge[] = [];
+  returnedArray: DemandeConge[] = [];
+  page = 1;
+  endItem = 9;
 
-  constructor(private modalService: BsModalService, public store: Store, private formBuilder: UntypedFormBuilder) {
+  constructor(private demandeService: DemandeCongeService) {}
 
+  ngOnInit(): void {
+    this.breadCrumbItems = [{ label: 'Congés' }, { label: 'Demandes', active: true }];
+    this.fetchDemandes();
   }
 
-  ngOnInit() {
-    this.breadCrumbItems = [{ label: 'Projects' }, { label: 'Projects Grid', active: true }];
-
-    this.store.dispatch(fetchprojectData());
-    this.store.select(selectData).subscribe(data => {
-      this.projectData = data;
+  fetchDemandes() {
+    this.demandeService.getAll().subscribe(data => {
+      this.demandes = data;
       this.returnedArray = data;
-      this.projectData = this.returnedArray.slice(0, 9);
+      this.updatePagination();
     });
   }
 
+  updatePagination() {
+    const startItem = (this.page - 1) * this.endItem;
+    this.returnedArray = this.demandes.slice(startItem, startItem + this.endItem);
+  }
 
-  // page change event
   pageChanged(event: any): void {
-    const startItem = (event.page - 1) * event.itemsPerPage;
-    this.endItem = event.page * event.itemsPerPage;
-    this.projectData = this.returnedArray.slice(startItem, this.endItem);
+    this.page = event.page;
+    this.updatePagination();
+  }
+
+  updateEtat(demande: DemandeConge, etat: string) {
+    const updated = { ...demande, etat };
+    this.demandeService.update(updated).subscribe(() => {
+      demande.etat = etat;
+    });
   }
 }

@@ -36,6 +36,7 @@ import { ChartModule } from './chart/chart.module';
 import { CalendarComponent } from './calendar/calendar.component';
 import { MapsModule } from './maps/maps.module';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { JobsModule } from './jobs/jobs.module';
 
 @NgModule(
         {
@@ -63,6 +64,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
                         IconsModule,
                         ChartModule,
                         MapsModule,
+                        JobsModule,
                         FullCalendarModule,
                         TabsModule.forRoot(),
                         TooltipModule.forRoot(),

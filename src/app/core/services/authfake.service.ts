@@ -1,52 +1,47 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { User } from 'src/app/store/Authentication/auth.models';
+import { tap } from 'rxjs/operators';
+import { User } from '../models/interfaces/user';
 
 @Injectable({ providedIn: 'root' })
 export class AuthfakeauthenticationService {
-    private currentUserSubject: BehaviorSubject<User>;
-    public currentUser: Observable<User>;
+  private currentUserSubject = new BehaviorSubject<User | null>(JSON.parse(localStorage.getItem('currentUser') || 'null'));
+  public currentUser$ = this.currentUserSubject.asObservable();
 
-    constructor(private http: HttpClient) {
-        this.currentUserSubject = new BehaviorSubject<User>(JSON.parse(localStorage.getItem('currentUser')));
-        this.currentUser = this.currentUserSubject.asObservable();
-    }
+  constructor(private http: HttpClient) {}
 
-    public get currentUserValue(): User {
-        return this.currentUserSubject.value;
-    }
-    // windows authentication
-    windowsAuth() {
-        return this.http.get<any>(`/users/windows-authenticate`)
-            .pipe(map(user => {
-                // login successful if there's a jwt token in the response
-                if (user && user.token) {
-                    // store user details and jwt token in local storage to keep user logged in between page refreshes
-                    localStorage.setItem('currentUser', JSON.stringify(user));
-                    this.currentUserSubject.next(user);
-                }
-                return user;
-            }));
-    }
+  public get currentUser(): User | null {
+    return this.currentUserSubject.value;
+  }
 
-    login(email: string, password: string) {
-        return this.http.post<any>(`/users/authenticate`, { email, password })
-            .pipe(map(user => {
-                // login successful if there's a jwt token in the response
-                if (user && user.token) {
-                    // store user details and jwt token in local storage to keep user logged in between page refreshes
-                    localStorage.setItem('currentUser', JSON.stringify(user));
-                    this.currentUserSubject.next(user);
-                }
-                return user;
-            }));
-    }
+  loginByMatricule(matricule: string): Observable<User> {
+    return this.http.post<User>(
+      'http://localhost:5000/api/auth/matricule',
+      { matricule },
+      { withCredentials: true } // Obligatoire pour compatibilité WindowsAuth future
+    ).pipe(
+      tap(user => {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        this.currentUserSubject.next(user);
+      })
+    );
+  }
 
-    logout() {
-        // remove user from local storage to log user out
-        localStorage.removeItem('currentUser');
-        this.currentUserSubject.next(null);
-    }
+  windowsAuth(): Observable<User> {
+    return this.http.get<User>(
+      'http://localhost:5000/api/auth/windows',
+      { withCredentials: true }
+    ).pipe(
+      tap(user => {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        this.currentUserSubject.next(user);
+      })
+    );
+  }
+
+  logout(): void {
+    localStorage.removeItem('currentUser');
+    this.currentUserSubject.next(null);
+  }
 }

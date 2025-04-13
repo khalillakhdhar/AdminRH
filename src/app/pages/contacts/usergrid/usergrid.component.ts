@@ -1,85 +1,93 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, UntypedFormArray, Validators } from '@angular/forms';
-import { Store } from '@ngrx/store';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
+import { ServiceService } from 'src/app/core/models/services/service.service';
+import { Service } from 'src/app/core/models/interfaces/service';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.component';
-import { selectData } from 'src/app/store/UserGrid/user-selector';
-import { fetchuserGridData } from 'src/app/store/UserGrid/user.action';
-
 
 @Component({
   selector: 'app-usergrid',
   templateUrl: './usergrid.component.html',
   styleUrls: ['./usergrid.component.scss'],
-  standalone:true,
-  imports:[CommonModule,PagetitleComponent]
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PagetitleComponent],
 })
-
-/**
- * Contacts user grid component
- */
 export class UsergridComponent implements OnInit {
-  // bread crumb items
-  breadCrumbItems: Array<{}>;
-
+  breadCrumbItems: Array<{}> = [];
   modalRef?: BsModalRef;
 
-  selected: any;
-  userForm: UntypedFormGroup;
+  serviceForm: UntypedFormGroup;
   submitted = false;
-  items: UntypedFormArray;
-  // Select2 Dropdown
-  selectValue: string[];
-  UserGrid: any
-  constructor(private modalService: BsModalService, private formBuilder: UntypedFormBuilder, public store: Store) { }
 
-  ngOnInit() {
-    this.selectValue = ['Photoshop', 'illustrator', 'Html', 'Css', 'Php', 'Java', 'Python'];
+  services: Service[] = [];
+  editMode: boolean = false;
 
-    this.breadCrumbItems = [{ label: 'Contacts' }, { label: 'Users Grid', active: true }];
-    this.userForm = this.formBuilder.group({
-      name: ['', [Validators.required]],
-      email: ['', [Validators.required]],
-      designation: ['', [Validators.required]]
+  constructor(
+    private modalService: BsModalService,
+    private fb: UntypedFormBuilder,
+    private serviceService: ServiceService
+  ) {}
+
+  ngOnInit(): void {
+    this.breadCrumbItems = [{ label: 'Gestion' }, { label: 'Services', active: true }];
+
+    this.serviceForm = this.fb.group({
+      id: [0],
+      nom: ['', Validators.required],
+      description: ['', Validators.required],
     });
 
-    this.store.dispatch(fetchuserGridData());
-    this.store.select(selectData).subscribe(data => {
-      this.UserGrid = data
-    })
+    this.loadServices();
   }
 
-  get form() {
-    return this.userForm.controls;
+  get f() {
+    return this.serviceForm.controls;
   }
 
-  /**
-   * Open modal
-   * @param content modal content
-   */
-  openModal(content: any) {
-    this.modalRef = this.modalService.show(content);
+  openModal(template: any, service?: Service) {
+    this.editMode = !!service;
+
+    if (service) {
+      this.serviceForm.patchValue(service);
+    } else {
+      this.serviceForm.reset({ id: 0 });
+    }
+
+    this.modalRef = this.modalService.show(template);
   }
 
+  loadServices() {
+    this.serviceService.getAll().subscribe((data) => {
+      this.services = data;
+    });
+  }
 
-  /**
-   * Save user
-   */
-  // saveUser() {
-  //   if (this.userForm.valid) {
-  //     const name = this.userForm.get('name').value;
-  //     const email = this.userForm.get('email').value;
-  //     const designation = this.userForm.get('designation').value;
-  //     this.userGridData.push({
-  //       id: this.userGridData.length + 1,
-  //       name,
-  //       email,
-  //       designation,
-  //       projects: this.selected
-  //     })
-  //     this.modalService.hide()
-  //   }
-  //   this.submitted = true
-  // }
+  onSubmit() {
+    this.submitted = true;
+    if (this.serviceForm.invalid) return;
+
+    const service = this.serviceForm.value;
+
+    if (this.editMode) {
+      this.serviceService.update(service.id, service).subscribe(() => {
+        this.loadServices();
+        this.modalRef?.hide();
+      });
+    } else {
+      this.serviceService.create(service).subscribe(() => {
+        this.loadServices();
+        this.modalRef?.hide();
+      });
+    }
+  }
+
+  deleteService(id: number) {
+    if (confirm('Supprimer ce service ?')) {
+      this.serviceService.delete(id).subscribe(() => {
+        this.loadServices();
+      });
+    }
+  }
 }

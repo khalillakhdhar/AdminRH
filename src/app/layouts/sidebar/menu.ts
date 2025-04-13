@@ -284,12 +284,13 @@ export const MENU: MenuItem[] = [
                 link: '/tasks/list',
                 parentId: 45
             },
-            {
+           /* {
                 id: 47,
                 label: 'MENUITEMS.TASKS.LIST.KANBAN',
                 link: '/tasks/kanban',
                 parentId: 45
             },
+            */
             {
                 id: 48,
                 label: 'MENUITEMS.TASKS.LIST.CREATETASK',
@@ -365,7 +366,7 @@ export const MENU: MenuItem[] = [
                 link: '/jobs/grid',
                 parentId: 57
             },
-            {
+         /*   {
                 id: 60,
                 label: 'MENUITEMS.JOBS.LIST.APPLYJOB',
                 link: '/jobs/apply',
@@ -382,30 +383,8 @@ export const MENU: MenuItem[] = [
                 label: 'MENUITEMS.JOBS.LIST.JOBCATEGORIES',
                 link: '/jobs/categories',
                 parentId: 57
-            },
-            {
-                id: 63,
-                label: 'MENUITEMS.JOBS.LIST.CANDIDATE.TEXT',
-                badge: {
-                    variant: 'success',
-                    text: 'MENUITEMS.EMAIL.LIST.TEMPLATE.BADGE',
-                },
-                parentId: 57,
-                subItems: [
-                    {
-                        id: 64,
-                        label: 'MENUITEMS.JOBS.LIST.CANDIDATE.LIST.LIST',
-                        link: '/jobs/candidate-list',
-                        parentId: 57
-                    },
-                    {
-                        id: 65,
-                        label: 'MENUITEMS.JOBS.LIST.CANDIDATE.LIST.OVERVIEW',
-                        link: '/jobs/candidate-overview',
-                        parentId: 57
-                    }
-                ]
-            }
+            },*/
+
         ]
     },
     /*

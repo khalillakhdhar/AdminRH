@@ -1,74 +1,80 @@
-import { Component, OnInit, ViewChild, EventEmitter, Output, Input, NO_ERRORS_SCHEMA } from '@angular/core';
-import { UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { NgxEditorModule } from 'ngx-editor';
-import { Editor } from 'ngx-editor';
+import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+
+import { Fourniture } from 'src/app/core/models/interfaces/fourniture';
+import { Matiere } from 'src/app/core/models/interfaces/matiere';
+import { TypeFourniture } from 'src/app/core/models/interfaces/type-fourniture';
+
+import { FournitureService } from 'src/app/core/models/services/fourniture.service';
+import { MatiereService } from 'src/app/core/models/services/matiere.service';
+import { TypeFournitureService } from 'src/app/core/models/services/type-fourniture.service';
 
 @Component({
   selector: 'app-createtask',
   templateUrl: './createtask.component.html',
   styleUrls: ['./createtask.component.scss'],
-  standalone:true,
-  imports:[NgxEditorModule],
-  schemas: [NO_ERRORS_SCHEMA]
+  standalone: true,
+  imports: [FormsModule, CommonModule]
 })
-
-/**
- * Tasks-create component
- */
 export class CreatetaskComponent implements OnInit {
 
-  // bread crumb items
-  breadCrumbItems: Array<{}>;
+  fourniture: Fourniture = {
+    id: 0,
+    nom: '',
+    quantite: 1,
+    date: new Date(),
+    etats: 'En attente',
+    type: '', // sera le matricule Windows
+    MatiereId: null,
+    TypeFournitureId: null
+  };
 
-  editor: Editor;
+  matieres: Matiere[] = [];
+  types: TypeFourniture[] = [];
 
-  form = new UntypedFormGroup({
-    member: new UntypedFormArray([
-      new UntypedFormControl(''),
-    ]),
-  });
+  constructor(
+    private matiereService: MatiereService,
+    private typeFournitureService: TypeFournitureService,
+    private fournitureService: FournitureService
+  ) {}
 
-  hidden: boolean;
-  selected: any;
-  html = '<p>Content of the editor.</p>';
+  ngOnInit(): void {
+    this.loadLists();
 
-  @Input() fromDate: Date;
-  @Input() toDate: Date;
-  @Output() dateRangeSelected: EventEmitter<{}> = new EventEmitter();
-
-  @ViewChild('dp', { static: true }) datePicker: any;
-
-  /**
-   * Returns the form field value
-   */
-  get member(): UntypedFormArray { return this.form.get('member') as UntypedFormArray; }
-
-  /**
-   * Add the member field in form
-   */
-  addMember() {
-    this.member.push(new UntypedFormControl());
+    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    if (user?.matriculeWindows) {
+      this.fourniture.type = user.matriculeWindows;
+    }
   }
 
-  /**
-   * Onclick delete member from form
-   */
-  deleteMember(i: number) {
-    this.member.removeAt(i);
+  loadLists() {
+    this.matiereService.getAll().subscribe(data => this.matieres = data);
+    this.typeFournitureService.getAll().subscribe(data => this.types = data);
   }
 
-  constructor() { }
-
-  ngOnInit() {
-    this.editor = new Editor();
-    this.breadCrumbItems = [{ label: 'Tasks' }, { label: 'Create Task', active: true }];
-
-    this.hidden = true;
+  onSubmit() {
+    this.fournitureService.create(this.fourniture).subscribe({
+      next: () => {
+        alert('Demande enregistrée avec succès !');
+        this.resetForm();
+      },
+      error: () => {
+        alert("Une erreur s'est produite lors de l'envoi.");
+      }
+    });
   }
 
-  ngOnDestroy(): void {
-    this.editor.destroy();
+  resetForm() {
+    this.fourniture = {
+      id: 0,
+      nom: '',
+      quantite: 1,
+      date: new Date(),
+      etats: 'En attente',
+      type: this.fourniture.type,
+      MatiereId: null,
+      TypeFournitureId: null
+    };
   }
-
-  
 }

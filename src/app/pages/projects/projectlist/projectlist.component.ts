@@ -1,45 +1,51 @@
 import { Component, OnInit } from '@angular/core';
-
 import { PageChangedEvent } from 'ngx-bootstrap/pagination';
-import { Store } from '@ngrx/store';
-import { fetchprojectData } from 'src/app/store/ProjectsData/project.actions';
-import { selectData } from 'src/app/store/ProjectsData/project-selector';
+import { Demande } from 'src/app/core/models/interfaces/demande';
+import { DemandeService } from 'src/app/core/models/services/demande.service';
+
 
 @Component({
   selector: 'app-projectlist',
   templateUrl: './projectlist.component.html',
   styleUrls: ['./projectlist.component.scss']
 })
-
-/**
- * Projects-list component
- */
 export class ProjectlistComponent implements OnInit {
-  totalItems = 12
-  // bread crumb items
-  breadCrumbItems: Array<{}>;
-  total$: any
-  page: any = 1;
-  endItem: any = 12;
-  returnedArray: any;
-  projectlist: any
+  breadCrumbItems: Array<{}> = [];
+  demandeList: Demande[] = [];
+  returnedArray: Demande[] = [];
+  page: number = 1;
+  endItem: number = 6;
 
-  constructor(public store: Store) { }
+  constructor(private demandeService: DemandeService) {}
 
   ngOnInit() {
-    this.breadCrumbItems = [{ label: 'Projects' }, { label: 'Projects List', active: true }];
+    this.breadCrumbItems = [{ label: 'Projects' }, { label: 'Demande List', active: true }];
+    this.loadDemandes();
+  }
 
-    this.store.dispatch(fetchprojectData());
-    this.store.select(selectData).subscribe(data => {
-      this.projectlist = data
-      this.returnedArray = data
-      this.projectlist = this.returnedArray.slice(0, 6);
+  loadDemandes() {
+    this.demandeService.getAll().subscribe(demandes => {
+      this.demandeList = demandes;
+      this.returnedArray = demandes;
+      this.paginate(1);
     });
   }
 
   pageChanged(event: PageChangedEvent): void {
-    const startItem = (event.page - 1) * event.itemsPerPage;
-    this.endItem = event.page * event.itemsPerPage;
-    this.projectlist = this.returnedArray.slice(startItem, this.endItem);
+    this.paginate(event.page);
+  }
+
+  paginate(page: number): void {
+    const start = (page - 1) * 6;
+    this.endItem = page * 6;
+    this.returnedArray = this.demandeList.slice(start, this.endItem);
+  }
+
+  deleteDemande(id: number): void {
+    if (confirm("Confirmer la suppression ?")) {
+      this.demandeService.delete(id).subscribe(() => {
+        this.loadDemandes(); // refresh list
+      });
+    }
   }
 }

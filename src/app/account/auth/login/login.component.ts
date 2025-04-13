@@ -1,82 +1,71 @@
 import { Component, OnInit } from '@angular/core';
-import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { AuthenticationService } from '../../../core/services/auth.service';
+import { FormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthfakeauthenticationService } from '../../../core/services/authfake.service';
-
-import { Store } from '@ngrx/store';
-import { ActivatedRoute, Router } from '@angular/router';
-import { login } from 'src/app/store/Authentication/authentication.actions';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
-  standalone:true,
-  imports:[CommonModule,FormsModule,ReactiveFormsModule]
+  standalone: true,
+  imports: [
+    FormsModule,
+
+  ]
 })
-
-/**
- * Login component
- */
 export class LoginComponent implements OnInit {
-auth=false;
   loginForm: UntypedFormGroup;
-  submitted: any = false;
-  error: any = '';
-  returnUrl: string;
-  fieldTextType!: boolean;
+  submitted = false;
+  error: string = '';
+  authMode: 'matricule' | 'windows' | null = null;
+  fieldTextType = false;
+matricule: string = '';
+  constructor(
+    private fb: UntypedFormBuilder,
+    private router: Router,
+    private authService: AuthfakeauthenticationService
+  ) {}
 
-  // set the currenr year
-  year: number = new Date().getFullYear();
-
-  // tslint:disable-next-line: max-line-length
-  constructor(private formBuilder: UntypedFormBuilder, private route: ActivatedRoute, private router: Router, private authenticationService: AuthenticationService, private store: Store,
-    private authFackservice: AuthfakeauthenticationService) { }
-
-  ngOnInit() {
+  ngOnInit(): void {
     if (localStorage.getItem('currentUser')) {
       this.router.navigate(['/']);
     }
-    // form validation
-    this.loginForm = this.formBuilder.group({
-      email: ['admin@themesbrand.com', [Validators.required, Validators.email]],
-      password: ['123456', [Validators.required]],
+
+
+  }
+
+  chooseWindows() {
+    this.authMode = 'windows';
+    this.authService.windowsAuth().subscribe({
+      next: user => {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        this.router.navigate(['/']);
+      },
+      error: () => this.error = "Échec de l'authentification Windows"
     });
   }
-  windowsAuth()
-  {
-    if(this.auth)
-    {
-      this.authFackservice.windowsAuth();
-    }
-    this.router.navigate(['/']);
 
-  }
-  identifier()
-  {
-    this.auth=true;
+  chooseMatricule() {
+    this.authMode = 'matricule';
   }
 
-  // convenience getter for easy access to form fields
-  get f() { return this.loginForm.controls; }
 
-  /**
-   * Form submit
-   */
   onSubmit() {
     this.submitted = true;
 
-    const email = this.f['email'].value; // Get the username from the form
-    const password = this.f['password'].value; // Get the password from the form
 
-    // Login Api
-    this.store.dispatch(login({ email: email, password: password }));
+console.log(this.matricule);
+
+    this.authService.loginByMatricule(this.matricule).subscribe({
+      next: user => {
+        localStorage.setItem('currentUser', JSON.stringify(user));
+        console.log(user);
+       this.router.navigate(['/']);
+      },
+      error: () => this.error = "Matricule incorrect ou inexistant"
+    });
   }
 
-  /**
- * Password Hide/Show
- */
   toggleFieldTextType() {
     this.fieldTextType = !this.fieldTextType;
   }
