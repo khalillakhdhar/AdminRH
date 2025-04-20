@@ -19,7 +19,7 @@ export class ListComponent implements OnInit {
   newFormation: Formation = this.getEmptyFormation();
   searchTerm: string = '';
   @ViewChild('formationModal') formationModal: any;
-  
+
   constructor(
     private formationService: FormationService,
     private modalService: BsModalService
@@ -57,7 +57,7 @@ export class ListComponent implements OnInit {
 
   saveFormation(form: NgForm): void {
     if (form.invalid) return;
-    
+
     if (this.newFormation.id === 0) {
       this.formationService.createFormation(this.newFormation).subscribe(() => {
         this.loadFormations();
