@@ -1,90 +1,105 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { NgForm } from '@angular/forms';
-import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
-import { UserService } from 'src/app/core/models/services/user.service';
-import { RoleService } from 'src/app/core/models/services/role.service';
-import { ServiceService } from 'src/app/core/models/services/service.service';
-import { User } from 'src/app/core/models/interfaces/user';
-import { Role } from 'src/app/core/models/interfaces/role';
-import { Service } from 'src/app/core/models/interfaces/service';
-import { FormsModule } from '@angular/forms';
-import { ModalModule } from 'ngx-bootstrap/modal';
-import { CommonModule } from '@angular/common';
-import { Observable } from 'rxjs';
 
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgForm } from '@angular/forms';
+import { Formation } from 'src/app/core/models/interfaces/formation';
+import { FormationService } from 'src/app/core/models/services/formation.service';
 @Component({
   selector: 'app-list',
-  standalone: true,  // Standalone Component
-  imports: [
-    CommonModule,
-    FormsModule,
-    ModalModule.forRoot() // ModalModule imported here
-  ],
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss']
 })
 
+/**
+ * List Component
+ */
 export class ListComponent implements OnInit {
-  searchTerm: any;
-  modalRef?: BsModalRef;
-  page: any = 1;
-  // bread crumb items
-  breadCrumbItems: Array<{}>;
-  jobListForm!: NgForm;  // Template-driven form
-  submitted: boolean = false;
-  endItem: any;
-  term: any;
-  // Table data
-  content?: any;
-  lists?: any;
-  total: Observable<number>;
-  currentPage: any;
-  joblist: any;
-  searchResults: any;
-
+  formations: Formation[] = [];
+  formationModalRef?: BsModalRef;
+  newFormation: Formation = this.getEmptyFormation();
+  searchTerm: string = '';
+  @ViewChild('formationModal') formationModal: any;
+  
   constructor(
-    private modalService: BsModalService,
-    private userService: UserService,
-    private roleService: RoleService,
-    private serviceService: ServiceService
+    private formationService: FormationService,
+    private modalService: BsModalService
   ) {}
 
   ngOnInit(): void {
-    this.breadCrumbItems = [{ label: 'Jobs' }, { label: 'Jobs List', active: true }];
-    // Initialize the lists
-    this.loadUsers();
+    this.loadFormations();
   }
 
-  loadUsers() {
-    // This will load users into the list
-    this.userService.getAll().subscribe(data => {
-      this.lists = data;
-      this.joblist = data;
-      this.lists = this.joblist.slice(0, 8);
+  getEmptyFormation(): Formation {
+    return {
+      id: 0,
+      titre: '',
+      description: '',
+      date_creation: new Date().toISOString(),
+      etat: 'en attente', // Par défaut "en attente"
+      type: ''
+    };
+  }
+
+  loadFormations(): void {
+    this.formationService.getAllFormations().subscribe(data => {
+      this.formations = data;
     });
   }
 
-  openModal(content: any) {
-    this.submitted = false;
-    this.modalRef = this.modalService.show(content, { class: 'modal-md' });
+  openModal(content: any, formation?: Formation): void {
+    if (formation) {
+      this.newFormation = { ...formation };
+    } else {
+      this.newFormation = this.getEmptyFormation();
+    }
+    this.formationModalRef = this.modalService.show(content);
   }
 
-  saveUser() {
-    if (this.jobListForm.invalid) return;
-    const newUser: User = this.jobListForm.value;
-    this.userService.create(newUser).subscribe(() => {
-      this.loadUsers();
-      this.modalService?.hide();
-      this.jobListForm.reset();
+  saveFormation(form: NgForm): void {
+    if (form.invalid) return;
+    
+    if (this.newFormation.id === 0) {
+      this.formationService.createFormation(this.newFormation).subscribe(() => {
+        this.loadFormations();
+        this.formationModalRef?.hide();
+        form.resetForm(this.getEmptyFormation());
+      });
+    } else {
+      this.formationService.updateFormation(this.newFormation.id, this.newFormation).subscribe(() => {
+        this.loadFormations();
+        this.formationModalRef?.hide();
+        form.resetForm(this.getEmptyFormation());
+      });
+    }
+  }
+
+  deleteFormation(id: number): void {
+    this.formationService.deleteFormation(id).subscribe(() => {
+      this.loadFormations();
     });
   }
 
-  openViewModal(content: any) {
-    this.modalRef = this.modalService.show(content);
+  acceptFormation(id: number): void {
+    const formationToUpdate: Formation = { ...this.formations.find(f => f.id === id)!, etat: 'accepté' };
+    this.formationService.updateFormation(id, formationToUpdate).subscribe(() => {
+      this.loadFormations();
+    });
   }
 
-  // Handle delete logic
-  delete(event: any) {
-    // Handle deletion logic
+  rejectFormation(id: number): void {
+    const formationToUpdate: Formation = { ...this.formations.find(f => f.id === id)!, etat: 'refusé' };
+    this.formationService.updateFormation(id, formationToUpdate).subscribe(() => {
+      this.loadFormations();
+    });
+  }
+
+  searchFormations(): void {
+    if (this.searchTerm) {
+      this.formations = this.formations.filter(formation =>
+        formation.titre.toLowerCase().includes(this.searchTerm.toLowerCase())
+      );
+    } else {
+      this.loadFormations();
+    }
   }
 }
