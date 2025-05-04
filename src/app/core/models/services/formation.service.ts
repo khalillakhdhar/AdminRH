@@ -28,6 +28,7 @@ export class FormationService {
     return this.http.put<void>(`${this.apiUrl}/${id}`, formation);
   }
 
+
   deleteFormation(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }

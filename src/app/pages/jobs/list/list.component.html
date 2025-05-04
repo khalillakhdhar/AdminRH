@@ -4,10 +4,9 @@
       <div class="card">
         <div class="card-body">
           <div class="row mb-2">
-
             <div class="col-sm-8">
               <div class="text-sm-end">
-                <button type="button" (click)="openModal(formationModal)" class="btn btn-success btn-rounded waves-effect waves-light addContact-modal mb-2">
+                <button type="button" (click)="openModal(formationModal)" class="btn btn-success btn-rounded mb-2">
                   <i class="mdi mdi-plus me-1"></i> New Formation
                 </button>
               </div>
@@ -41,35 +40,32 @@
               </tbody>
             </table>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Modal: Add/Edit Formation -->
-  <div bsModal #formationModal="bs-modal" class="modal fade" id="formationModal" tabindex="-1" aria-labelledby="formationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="formationModalLabel">Add/Edit Formation</h5>
-          <button type="button" class="btn-close" (click)="formationModalRef?.hide()"></button>
-        </div>
-        <div class="modal-body">
-          <form (ngSubmit)="saveFormation(formationForm)" #formationForm="ngForm">
-            <div class="mb-3">
-              <label for="titre" class="form-label">Title</label>
-              <input type="text" class="form-control" id="titre" name="titre" [(ngModel)]="newFormation.titre" required />
+          <!-- Modal template -->
+          <ng-template #formationModal>
+            <div class="modal-header">
+              <h5 class="modal-title">Add/Edit Formation</h5>
+              <button type="button" class="btn-close" aria-label="Close" (click)="formationModalRef?.hide()"></button>
             </div>
-            <div class="mb-3">
-              <label for="description" class="form-label">Description</label>
-              <textarea class="form-control" id="description" name="description" [(ngModel)]="newFormation.description"></textarea>
+            <div class="modal-body">
+              <form (ngSubmit)="saveFormation(formationForm)" #formationForm="ngForm">
+                <div class="mb-3">
+                  <label class="form-label">Title</label>
+                  <input type="text" class="form-control" [(ngModel)]="newFormation.titre" name="titre" required />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Description</label>
+                  <textarea class="form-control" [(ngModel)]="newFormation.description" name="description"></textarea>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Type</label>
+                  <input type="text" class="form-control" [(ngModel)]="newFormation.type" name="type" required />
+                </div>
+                <button type="submit" class="btn btn-success">Save</button>
+              </form>
             </div>
-            <div class="mb-3">
-              <label for="type" class="form-label">Type</label>
-              <input type="text" class="form-control" id="type" name="type" [(ngModel)]="newFormation.type" required />
-            </div>
-            <button type="submit" class="btn btn-success">Save</button>
-          </form>
+          </ng-template>
+
         </div>
       </div>
     </div>

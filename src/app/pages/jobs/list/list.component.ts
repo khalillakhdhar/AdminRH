@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 
 import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { NgForm } from '@angular/forms';
@@ -18,7 +18,7 @@ export class ListComponent implements OnInit {
   formationModalRef?: BsModalRef;
   newFormation: Formation = this.getEmptyFormation();
   searchTerm: string = '';
-  @ViewChild('formationModal') formationModal: any;
+  @ViewChild('formationModal') formationModal!: TemplateRef<any>;
 
   constructor(
     private formationService: FormationService,
@@ -35,68 +35,86 @@ export class ListComponent implements OnInit {
       titre: '',
       description: '',
       date_creation: new Date().toISOString(),
-      etat: 'en attente', // Par défaut "en attente"
+      etat: 'en attente',
       type: ''
     };
   }
 
   loadFormations(): void {
-    this.formationService.getAllFormations().subscribe(data => {
-      this.formations = data;
+    this.formationService.getAllFormations().subscribe({
+      next: (data) => {
+        this.formations = data;
+      },
+      error: (err) => console.error('Erreur chargement des formations', err)
     });
   }
 
-  openModal(content: any, formation?: Formation): void {
-    if (formation) {
-      this.newFormation = { ...formation };
-    } else {
-      this.newFormation = this.getEmptyFormation();
-    }
-    this.formationModalRef = this.modalService.show(content);
+  openModal(content: TemplateRef<any>, formation?: Formation): void {
+    this.newFormation = formation ? { ...formation } : this.getEmptyFormation();
+    this.formationModalRef = this.modalService.show(content, {
+      class: 'modal-lg modal-dialog-centered'
+    });
   }
-
   saveFormation(form: NgForm): void {
     if (form.invalid) return;
 
     if (this.newFormation.id === 0) {
-      this.formationService.createFormation(this.newFormation).subscribe(() => {
-        this.loadFormations();
-        this.formationModalRef?.hide();
-        form.resetForm(this.getEmptyFormation());
+      // Création
+      this.formationService.createFormation(this.newFormation).subscribe({
+        next: () => {
+          this.loadFormations();
+          this.formationModalRef?.hide();
+          form.resetForm(this.getEmptyFormation());
+        },
+        error: (err) => {
+          console.error('Erreur lors de la création de la formation', err);
+        }
       });
     } else {
-      this.formationService.updateFormation(this.newFormation.id, this.newFormation).subscribe(() => {
-        this.loadFormations();
-        this.formationModalRef?.hide();
-        form.resetForm(this.getEmptyFormation());
+      // Mise à jour
+      this.formationService.updateFormation(this.newFormation.id, this.newFormation).subscribe({
+        next: () => {
+          this.loadFormations();
+          this.formationModalRef?.hide();
+          form.resetForm(this.getEmptyFormation());
+        },
+        error: (err) => {
+          console.error('Erreur lors de la mise à jour de la formation', err);
+        }
       });
     }
   }
 
+
+
+
   deleteFormation(id: number): void {
-    this.formationService.deleteFormation(id).subscribe(() => {
-      this.loadFormations();
+    this.formationService.deleteFormation(id).subscribe({
+      next: () => this.loadFormations(),
+      error: (err) => console.error('Erreur suppression', err)
     });
   }
 
   acceptFormation(id: number): void {
-    const formationToUpdate: Formation = { ...this.formations.find(f => f.id === id)!, etat: 'accepté' };
-    this.formationService.updateFormation(id, formationToUpdate).subscribe(() => {
-      this.loadFormations();
+    const formation = { ...this.formations.find(f => f.id === id)!, etat: 'accepté' };
+    this.formationService.updateFormation(id, formation).subscribe({
+      next: () => this.loadFormations(),
+      error: (err) => console.error('Erreur acceptation', err)
     });
   }
 
   rejectFormation(id: number): void {
-    const formationToUpdate: Formation = { ...this.formations.find(f => f.id === id)!, etat: 'refusé' };
-    this.formationService.updateFormation(id, formationToUpdate).subscribe(() => {
-      this.loadFormations();
+    const formation = { ...this.formations.find(f => f.id === id)!, etat: 'refusé' };
+    this.formationService.updateFormation(id, formation).subscribe({
+      next: () => this.loadFormations(),
+      error: (err) => console.error('Erreur refus', err)
     });
   }
 
   searchFormations(): void {
     if (this.searchTerm) {
-      this.formations = this.formations.filter(formation =>
-        formation.titre.toLowerCase().includes(this.searchTerm.toLowerCase())
+      this.formations = this.formations.filter(f =>
+        f.titre.toLowerCase().includes(this.searchTerm.toLowerCase())
       );
     } else {
       this.loadFormations();
