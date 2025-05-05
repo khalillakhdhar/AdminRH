@@ -1,9 +1,11 @@
-// formation.ts
+import { Cours } from "./Cours";
+
 export interface Formation {
-  id: number;
+  id?: number;
   titre: string;
   description?: string;
-  date_creation: string;  // Date en format ISO 8601
-  etat: string; // Par défaut "en attente"
-  type: string;
+  date_creation?: string;
+  etat?: string;
+  type?: string;
+  cours?: Cours[]; // 👈 Ajout ici
 }

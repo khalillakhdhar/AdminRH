@@ -3,6 +3,8 @@
     <div class="col-lg-12">
       <div class="card">
         <div class="card-body">
+
+          <!-- Bouton ajouter une formation -->
           <div class="row mb-2">
             <div class="col-sm-8">
               <div class="text-sm-end">
@@ -13,6 +15,7 @@
             </div>
           </div>
 
+          <!-- Table des formations -->
           <div class="table-responsive">
             <table class="table table-striped">
               <thead>
@@ -31,17 +34,18 @@
                   <td>{{ formation.type }}</td>
                   <td>{{ formation.etat }}</td>
                   <td>
-                    <button class="btn btn-info btn-sm" (click)="openModal(formationModal, formation)">Edit</button>
-                    <button class="btn btn-danger btn-sm" (click)="deleteFormation(formation.id)">Delete</button>
-                    <button class="btn btn-success btn-sm" (click)="acceptFormation(formation.id)">Accept</button>
-                    <button class="btn btn-warning btn-sm" (click)="rejectFormation(formation.id)">Reject</button>
+                    <button class="btn btn-info btn-sm" (click)="openModal(formationModal, formation)">modifier</button>
+                    <button class="btn btn-danger btn-sm" (click)="deleteFormation(formation.id)">supprimer</button>
+                    <button class="btn btn-success btn-sm" (click)="acceptFormation(formation.id)">Accepter</button>
+                    <button class="btn btn-warning btn-sm" (click)="rejectFormation(formation.id)">Rejeter</button>
+                    <button class="btn btn-primary btn-sm" (click)="selectFormation(formation)">Consulter</button>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <!-- Modal template -->
+          <!-- Modal ajout / modification de formation -->
           <ng-template #formationModal>
             <div class="modal-header">
               <h5 class="modal-title">Add/Edit Formation</h5>
@@ -65,6 +69,39 @@
               </form>
             </div>
           </ng-template>
+
+          <!-- Section des cours -->
+          <div *ngIf="selectedFormation" class="mt-4 card p-3">
+            <h5 class="mb-3">Cours pour la formation : {{ selectedFormation.titre }}</h5>
+
+            <!-- Liste des cours -->
+            <ul class="list-group mb-3">
+              <li *ngFor="let c of selectedFormation.cours" class="list-group-item d-flex justify-content-between align-items-center">
+                {{ c.titre }}
+                <a [href]="c.urlFichier" target="_blank" class="btn btn-outline-primary btn-sm">Voir</a>
+              </li>
+              <li *ngIf="!selectedFormation.cours?.length" class="list-group-item text-muted">
+                Aucun cours encore
+              </li>
+            </ul>
+
+            <!-- Formulaire ajout de cours -->
+            <form (ngSubmit)="uploadCours()" #coursForm="ngForm">
+              <div class="row align-items-end">
+                <div class="col-md-4">
+                  <label>Titre du cours</label>
+                  <input type="text" class="form-control" [(ngModel)]="newCours.titre" name="titre" required>
+                </div>
+                <div class="col-md-4">
+                  <label>Fichier</label>
+                  <input type="file" (change)="onFileSelected($event)" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                  <button type="submit" class="btn btn-success">Ajouter le cours</button>
+                </div>
+              </div>
+            </form>
+          </div>
 
         </div>
       </div>
