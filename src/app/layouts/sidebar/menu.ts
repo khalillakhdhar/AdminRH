@@ -360,13 +360,13 @@ export const MENU: MenuItem[] = [
                 link: '/jobs/list',
                 parentId: 57
             },
-            {
+           /*   {
                 id: 59,
                 label: 'MENUITEMS.JOBS.LIST.JOBGRID',
                 link: '/jobs/grid',
                 parentId: 57
             },
-         /*   {
+          {
                 id: 60,
                 label: 'MENUITEMS.JOBS.LIST.APPLYJOB',
                 link: '/jobs/apply',
