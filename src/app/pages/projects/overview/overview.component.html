@@ -26,9 +26,23 @@
                 class="form-control"
                 id="date"
                 name="date"
-                [(ngModel)]="demande.date"
+                [(ngModel)]="demande.datecreation"
                 required
               />
+            </div>
+            <div class="mb-3">
+              <label for="id" class="form-label">typeDemande</label>
+              <select
+                class="form-select"
+                id="demandeType"
+                name="demandeType"
+                [(ngModel)]="demande.typeDemande"
+                required
+              >
+                <option value="" disabled selected>Choisir le type de demande</option>
+                <option *ngFor="let type of typesDemande" [value]="type">{{ type }}</option>
+              </select>
+
             </div>
 
             <button type="submit" class="btn btn-primary" [disabled]="!demandeForm.form.valid">Soumettre</button>

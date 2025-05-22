@@ -11,9 +11,17 @@
             <i class="mdi mdi-calendar me-1"></i> {{ demande.datecreation || 'N/A' }}
           </p>
 
+          <p class="text-muted mb-2">
+            <i class="mdi mdi-account me-1"></i> {{ demande.typeDemande || 'Autres' }}
+          </p>
+    <p class="text-muted mb-2">
+            <i class="mdi mdi-account me-1"></i> {{ demande.etat || 'En Attente' }}
+          </p>
         </div>
-        <div class="card-footer d-flex justify-content-between">
-          <span class="badge bg-info"> Identifiant: {{ demande.id }}</span>
+        <div *ngIf="currentUser.role==='Administrateur' && demande.etat==='en attente'" class="card-footer d-flex justify-content-between">
+          <!-- accepter ou refuser demande-->
+          <button class="btn btn-sm btn-success" (click)="acceptDemande(demande.id,demande)">Accepter</button>
+          <button class="btn btn-sm btn-warning" (click)="refuseDemande(demande.id,demande)">Refuser</button>
           <button class="btn btn-sm btn-danger" (click)="deleteDemande(demande.id)">Supprimer</button>
         </div>
       </div>

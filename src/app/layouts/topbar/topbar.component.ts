@@ -36,6 +36,7 @@ export class TopbarComponent implements OnInit {
   theme: any;
   layout: string;
   dataLayout$: Observable<string>;
+  currentUser: any = null;
   // Define layoutMode as a property
 
   constructor(@Inject(DOCUMENT) private document: any, private router: Router, private authService: AuthenticationService,
@@ -61,6 +62,8 @@ export class TopbarComponent implements OnInit {
 
   ngOnInit() {
     // this.initialAppState = initialState;
+    const user = localStorage.getItem('currentUser');
+    this.currentUser = user ? JSON.parse(user) : null;
     this.store.select('layout').subscribe((data) => {
       this.theme = data.DATA_LAYOUT;
     })

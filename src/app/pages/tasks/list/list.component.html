@@ -16,7 +16,7 @@
                   <th>Matière</th>
                   <th>Type Fourniture</th>
                   <th>État</th>
-                  <th>Actions</th>
+                  <th *ngIf="currentUser.role==='Administrateur'">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -33,7 +33,7 @@
                       'bg-danger': f.etats === 'Refusée'
                     }">{{ f.etats }}</span>
                   </td>
-                  <td>
+                  <td *ngIf="currentUser.role==='Administrateur'">
                     <button *ngIf="f.etats === 'En attente'" class="btn btn-success btn-sm me-2" (click)="accepter(f)">
                       Accepter
                     </button>

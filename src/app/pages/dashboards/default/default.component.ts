@@ -6,6 +6,7 @@ import { MatiereService } from 'src/app/core/models/services/matiere.service';
 import { TypeFournitureService } from 'src/app/core/models/services/type-fourniture.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { QuizResultService } from 'src/app/core/models/services/quiz-result.service';
 
 @Component({
   selector: 'app-default',
@@ -21,6 +22,11 @@ import { FormsModule } from '@angular/forms';
 export class DefaultComponent implements OnInit {
   currentUser: any = null;
 
+  // Déclaration des statistiques
+  totalParticipants: number = 0;
+  passedQuizAbove10: number = 0;
+  failedQuizBelow10: number = 0;
+
   // Matières & Types CRUD
   matieres: Matiere[] = [];
   typesFourniture: TypeFourniture[] = [];
@@ -30,7 +36,8 @@ export class DefaultComponent implements OnInit {
 
   constructor(
     private matiereService: MatiereService,
-    private typeService: TypeFournitureService
+    private typeService: TypeFournitureService,
+    private quizResultService: QuizResultService
   ) {}
 
   ngOnInit(): void {
@@ -39,8 +46,23 @@ export class DefaultComponent implements OnInit {
 
     this.getMatieres();
     this.getTypes();
+    this.loadStats();
   }
 
+  // Fonction pour récupérer les statistiques
+  loadStats(): void {
+    this.quizResultService.getTotalParticipants().subscribe((total) => {
+      this.totalParticipants = total;
+    });
+
+    this.quizResultService.getPassedQuizAbove10().subscribe((passed) => {
+      this.passedQuizAbove10 = passed;
+    });
+
+    this.quizResultService.getFailedQuizBelow10().subscribe((failed) => {
+      this.failedQuizBelow10 = failed;
+    });
+  }
   // 🔁 MATERIELS
   getMatieres() {
     this.matiereService.getAll().subscribe(data => this.matieres = data);

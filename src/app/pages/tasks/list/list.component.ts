@@ -15,12 +15,14 @@ import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.compon
 export class ListComponent implements OnInit {
   breadCrumbItems: Array<any> = [];
   fournitures: Fourniture[] = [];
-
+currentUser: any = null;
   constructor(private fournitureService: FournitureService) {}
 
   ngOnInit(): void {
     this.breadCrumbItems = [{ label: 'Fournitures' }, { label: 'Liste', active: true }];
     this.fetchFournitures();
+    const user = localStorage.getItem('currentUser');
+    this.currentUser = user ? JSON.parse(user) : null;
 
   }
 

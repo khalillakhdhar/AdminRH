@@ -10,6 +10,7 @@ import { Service } from 'src/app/core/models/interfaces/service';
 import { FormsModule } from '@angular/forms';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-userlist',
@@ -31,20 +32,27 @@ export class UserlistComponent implements OnInit {
   term = '';
   deleteId: number | null = null;
   newUser: User = this.getEmptyUser();
-
+  currentUser: any = null;
   @ViewChild('newContactModal') newContactModal!: ModalDirective;
   @ViewChild('removeItemModal') removeItemModal!: ModalDirective;
 
   constructor(
     private userService: UserService,
     private roleService: RoleService,
-    private serviceService: ServiceService
+    private serviceService: ServiceService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.loadUsers();
     this.roleService.getAll().subscribe(data => this.roles = data);
     this.serviceService.getAll().subscribe(data => this.services = data);
+      const user = localStorage.getItem('currentUser');
+    this.currentUser = user ? JSON.parse(user) : null;
+    if (this.currentUser?.role !== 'admin') {
+      this.router.navigate(['/profile']);
+    }
   }
 
   getEmptyUser(): User {

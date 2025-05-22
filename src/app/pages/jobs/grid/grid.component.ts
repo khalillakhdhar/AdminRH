@@ -1,97 +1,128 @@
-import { Component, OnInit } from '@angular/core';
-import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
-import { UntypedFormBuilder } from '@angular/forms';
-
-import { Store } from '@ngrx/store';
-import { fetchJobgridData } from 'src/app/store/Job/job.action';
-import { selecDatagrid } from 'src/app/store/Job/job-selector';
-
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { FormationService } from 'src/app/core/models/services/formation.service';
+import { QuizService } from 'src/app/core/models/services/quiz.service';
+import { QuizQuestionService } from 'src/app/core/models/services/quiz-question.service';
+import { Formation } from 'src/app/core/models/interfaces/formation';
+import { Quiz } from 'src/app/core/models/interfaces/quiz.model';
+import { QuizQuestion } from 'src/app/core/models/interfaces/question.model';
+import { trigger, style, animate, transition } from '@angular/animations';
 
 @Component({
   selector: 'app-grid',
   templateUrl: './grid.component.html',
   styleUrls: ['./grid.component.scss'],
+  animations: [
+    trigger('fadeAnimation', [
+      transition(':enter', [
+        style({ opacity: 0 }),
+        animate('300ms ease-in', style({ opacity: 1 })),
+      ]),
+      transition(':leave', [
+        animate('300ms ease-out', style({ opacity: 0 })),
+      ]),
+    ]),
+  ]
 })
-
-/**
- * Grid Component
- */
 export class GridComponent implements OnInit {
-  searchterm: any
-  modalRef?: BsModalRef;
-  endItem: any
-  // bread crumb items
-  breadCrumbItems: Array<{}>;
-  public isCollapsed: boolean = true;
-  submitted: boolean = false;
-  // Table data
-  content?: any;
-  grids: any;
-  gridata: any
-  page: 1;
-  term: any
-  constructor(private formBuilder: UntypedFormBuilder, private modalService: BsModalService, public store: Store) { }
+  formations: Formation[] = [];
+  quizzes: Quiz[] = [];
+  quizQuestions: QuizQuestion[] = [];
+  selectedQuiz: Quiz | null = null;
+
+  currentQuestionIndex = 0;
+  userAnswers: { [questionId: number]: number } = {};
+  score: number | null = null;
+  pointsPerQuestion = 20; // ou ce que tu souhaites comme barème
+
+  quizModalRef?: BsModalRef;
+
+  @ViewChild('quizModal') quizModal!: TemplateRef<any>;
+
+  currentUser = JSON.parse(localStorage.getItem('currentUser')!); // adapte en fonction
+
+  constructor(
+    private formationService: FormationService,
+    private quizService: QuizService,
+    private quizQuestionService: QuizQuestionService,
+    private modalService: BsModalService
+  ) {}
 
   ngOnInit(): void {
-    this.breadCrumbItems = [{ label: 'Jobs' }, { label: 'Jobs Grid', active: true }];
+    this.loadFormations();
+  }
 
-    /**
-* fetches data
-*/
-    this.store.dispatch(fetchJobgridData());
-    this.store.select(selecDatagrid).subscribe(data => {
-      this.grids = data;
-      this.gridata = data;
-      this.grids = this.gridata.slice(0, 8)
+  loadFormations() {
+    this.formationService.getAllFormations().subscribe({
+      next: (data) => (this.formations = data),
+      error: (err) => console.error(err),
     });
   }
 
-  /**
-   * Open modal
-   * @param content modal content
-   */
-  openModal(content: any) {
-    this.submitted = false;
-    this.modalRef = this.modalService.show(content, { class: 'modal-md' });
+  openQuizForFormation(formation: Formation) {
+    this.score = null;
+    this.quizQuestions = [];
+    this.selectedQuiz = null;
+    this.currentQuestionIndex = 0;
+    this.userAnswers = {};
+
+    // Charger le quiz de la formation (ici on prend le 1er quiz pour simplifier)
+    this.quizService.getQuizsByFormation(formation.id!).subscribe({
+      next: (quizzes) => {
+        if (quizzes.length > 0) {
+          this.selectedQuiz = quizzes[0]; // adapter si plusieurs quizzes par formation
+          this.loadQuizQuestions(this.selectedQuiz.id!);
+          this.quizModalRef = this.modalService.show(this.quizModal, {
+            class: 'modal-lg modal-dialog-centered',
+          });
+        } else {
+          alert('Aucun quiz disponible pour cette formation.');
+        }
+      },
+      error: (err) => console.error(err),
+    });
   }
 
-  // pagechanged
-  pageChanged(event: any) {
-    const startItem = (event.page - 1) * event.itemsPerPage;
-    this.endItem = event.page * event.itemsPerPage;
-    this.grids = this.gridata.slice(startItem, this.endItem)
+  loadQuizQuestions(quizId: number) {
+    this.quizQuestionService.getQuestionsByQuiz(quizId).subscribe({
+      next: (questions) => {
+        this.quizQuestions = questions;
+        this.currentQuestionIndex = 0;
+        this.userAnswers = {};
+      },
+      error: (err) => console.error(err),
+    });
   }
 
-  // fiter job
-  searchJob() {
-    if (this.term) {
-      this.grids = this.gridata.filter((data: any) => {
-        return data.title.toLowerCase().includes(this.term.toLowerCase())
-      })
-    } else {
-      this.grids = this.gridata
-    }
-    // noResultElement
-    this.updateNoResultDisplay();
+  selectOption(questionId: number, optionId: number) {
+    this.userAnswers[questionId] = optionId;
   }
 
-  // no result 
-  updateNoResultDisplay() {
-    const paginationElement = document.getElementById('pagination-element') as HTMLElement;
-    if (this.term && this.grids.length === 0) {
-      paginationElement.style.display = 'none';
-    } else {
-      paginationElement.style.display = 'block';
+  nextQuestion() {
+    if (this.currentQuestionIndex < this.quizQuestions.length - 1) {
+      this.currentQuestionIndex++;
     }
   }
-  // location
-  Location() {
-    if (this.term) {
-      this.grids = this.gridata.filter((el: any) => {
-        return el.location.toLowerCase().includes(this.term.toLowerCase())
-      });
-    } else {
-      this.grids = this.gridata
+
+  previousQuestion() {
+    if (this.currentQuestionIndex > 0) {
+      this.currentQuestionIndex--;
     }
+  }
+
+  submitQuiz() {
+    if (!this.selectedQuiz || !this.currentUser) return alert('Quiz ou utilisateur non défini.');
+
+    const answers = Object.entries(this.userAnswers).map(([questionId, optionId]) => ({
+      questionId: +questionId,
+      optionId,
+    }));
+
+    this.quizService.submitQuiz(this.selectedQuiz.id!, this.currentUser.id, { answers }).subscribe({
+      next: (res) => {
+        this.score = res.score;
+      },
+      error: (err) => console.error('Erreur lors de la soumission du quiz', err),
+    });
   }
 }

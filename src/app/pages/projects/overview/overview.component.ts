@@ -13,11 +13,9 @@ export class OverviewComponent implements OnInit {
   breadCrumbItems: Array<{}>;
   overviewBarChart: ChartType;
 
-  demande: Partial<Demande> = {
-    date: new Date(),
-    description: '',
-  };
-
+  demande={} as Demande;
+typesDemande = ["Matériel","Attestation légalisé","Attestation non légalisé", "Générale", "Autre"];
+  //selectedType: string = this.typesDemande[0];
   constructor(private demandeService: DemandeService) {}
 
   ngOnInit() {
@@ -31,7 +29,7 @@ export class OverviewComponent implements OnInit {
   }
 
   submitDemande() {
-    if (!this.demande.date || !this.demande.description) return;
+    if (!this.demande.datecreation || !this.demande.description) return;
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
     const userId = currentUser?.id;
     this.demande.id_user = userId;
@@ -41,7 +39,14 @@ export class OverviewComponent implements OnInit {
       next: () => {
         alert('Demande envoyée avec succès !');
         this.demande.description = '';
-        this.demande.date = new Date();
+        // date is set to current date
+        this.demande.datecreation = new Date();
+        this.demande.id_user = userId;
+        this.demande.id_service = currentUser?.service?.id;
+        this.demande.etat = 'en attente';
+
+
+
       },
       error: () => alert("Erreur lors de l'envoi de la demande.")
     });

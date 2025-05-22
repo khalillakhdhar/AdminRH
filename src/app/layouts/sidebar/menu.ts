@@ -247,12 +247,12 @@ export const MENU: MenuItem[] = [
         label: 'MENUITEMS.PROJECTS.TEXT',
         icon: 'bx-briefcase-alt-2',
         subItems: [
-            {
+        /*    {
                 id: 41,
                 label: 'MENUITEMS.PROJECTS.LIST.GRID',
                 link: '/projects/grid',
                 parentId: 40
-            },
+            },*/
             {
                 id: 42,
                 label: 'MENUITEMS.PROJECTS.LIST.PROJECTLIST',
@@ -265,12 +265,12 @@ export const MENU: MenuItem[] = [
                 link: '/projects/overview',
                 parentId: 40
             },
-            {
+         /*   {
                 id: 44,
                 label: 'MENUITEMS.PROJECTS.LIST.CREATE',
                 link: '/projects/create',
                 parentId: 40
-            }
+            }*/
         ]
     },
     {
@@ -360,12 +360,13 @@ export const MENU: MenuItem[] = [
                 link: '/jobs/list',
                 parentId: 57
             },
-           /*   {
+              {
                 id: 59,
                 label: 'MENUITEMS.JOBS.LIST.JOBGRID',
                 link: '/jobs/grid',
                 parentId: 57
             },
+/*
           {
                 id: 60,
                 label: 'MENUITEMS.JOBS.LIST.APPLYJOB',

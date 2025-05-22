@@ -6,6 +6,7 @@ import { Service } from 'src/app/core/models/interfaces/service';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { PagetitleComponent } from 'src/app/shared/ui/pagetitle/pagetitle.component';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-usergrid',
@@ -23,15 +24,22 @@ export class UsergridComponent implements OnInit {
 
   services: Service[] = [];
   editMode: boolean = false;
-
+currentUser: any = null;
   constructor(
     private modalService: BsModalService,
     private fb: UntypedFormBuilder,
-    private serviceService: ServiceService
+    private serviceService: ServiceService,
+    private router: Router,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
     this.breadCrumbItems = [{ label: 'Gestion' }, { label: 'Services', active: true }];
+    const user = localStorage.getItem('currentUser');
+    this.currentUser = user ? JSON.parse(user) : null;
+    if (this.currentUser?.role !== 'admin') {
+      this.router.navigate(['/profile']);
+    }
 
     this.serviceForm = this.fb.group({
       id: [0],

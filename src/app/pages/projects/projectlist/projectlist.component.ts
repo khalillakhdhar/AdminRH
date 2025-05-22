@@ -15,12 +15,15 @@ export class ProjectlistComponent implements OnInit {
   returnedArray: Demande[] = [];
   page: number = 1;
   endItem: number = 6;
-
+currentUser: any = null;
+demande={} as Demande;
   constructor(private demandeService: DemandeService) {}
 
   ngOnInit() {
     this.breadCrumbItems = [{ label: 'Projects' }, { label: 'Demande List', active: true }];
     this.loadDemandes();
+     const user = localStorage.getItem('currentUser');
+    this.currentUser = user ? JSON.parse(user) : null;
   }
 
   loadDemandes() {
@@ -29,6 +32,29 @@ export class ProjectlistComponent implements OnInit {
       this.returnedArray = demandes;
       this.paginate(1);
     });
+  }
+  // accepter la demande
+  acceptDemande(id: number,demande:Demande): void {
+    if (confirm("Confirmer l'acceptation ?")) {
+      demande.etat = "accepté";
+      let dm= Object.assign({},demande);
+
+      this.demandeService.update(id,dm).subscribe(() => {
+        //this.loadDemandes(); // refresh list
+        alert("Demande acceptée avec succès !");
+      });
+    }
+  }
+  // refuser la demande
+  refuseDemande(id: number,demande:Demande): void {
+    if (confirm("Confirmer le refus ?")) {
+      demande.etat = "refusé";
+      let dm= Object.assign({},demande);
+      this.demandeService.update(id, dm).subscribe(() => {
+        //this.loadDemandes(); // refresh list
+        alert("Demande refusée avec succès !");
+      });
+    }
   }
 
   pageChanged(event: PageChangedEvent): void {
